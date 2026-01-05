@@ -204,6 +204,76 @@ body {
     height: 1.25rem;
 }
 
+/* Email Auth Form */
+.email-auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-2);
+}
+
+.auth-input {
+    width: 100%;
+    padding: var(--spacing-3);
+    border: 1px solid var(--color-slate-200);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-base);
+    font-family: var(--font-family);
+    transition: all var(--transition-fast);
+    outline: none;
+}
+
+.auth-input:focus {
+    border-color: var(--color-orange-400);
+    box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.2);
+}
+
+.auth-buttons {
+    display: flex;
+    gap: var(--spacing-2);
+}
+
+.auth-btn {
+    flex: 1;
+    padding: var(--spacing-3);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.auth-btn.login-btn {
+    background: linear-gradient(135deg, var(--color-orange-500), var(--color-orange-600));
+    color: var(--color-white);
+    border: none;
+}
+
+.auth-btn.login-btn:hover {
+    background: linear-gradient(135deg, var(--color-orange-600), var(--color-orange-700));
+}
+
+.auth-btn.register-btn {
+    background-color: var(--color-white);
+    color: var(--color-orange-600);
+    border: 1px solid var(--color-orange-300);
+}
+
+.auth-btn.register-btn:hover {
+    background-color: var(--color-orange-50);
+}
+
+.auth-error {
+    font-size: var(--font-size-sm);
+    color: var(--color-red-600);
+    text-align: center;
+    margin-top: var(--spacing-1);
+}
+
+.auth-error.hidden {
+    display: none;
+}
+
 .login-divider {
     display: flex;
     align-items: center;

@@ -82,28 +82,6 @@ function getDocPath(dateStr) {
 // Authentication
 // ===================================
 
-/**
- * Googleログイン
- */
-async function signInWithGoogle() {
-    try {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        const result = await auth.signInWithPopup(provider);
-        currentUser = result.user;
-        console.log('Googleログイン成功:', currentUser.displayName);
-        return currentUser;
-    } catch (error) {
-        console.error('ログインエラー:', error);
-        if (error.code === 'auth/popup-blocked') {
-            alert('ポップアップがブロックされました。ポップアップを許可してください。');
-        } else if (error.code === 'auth/cancelled-popup-request') {
-            // ユーザーがキャンセルした場合は何もしない
-        } else {
-            alert('ログインに失敗しました: ' + error.message);
-        }
-        return null;
-    }
-}
 
 /**
  * 匿名認証でログイン
@@ -118,6 +96,77 @@ async function signInAnonymously() {
         console.error('匿名ログインエラー:', error);
         alert('ログインに失敗しました。ページをリロードしてください。');
         return null;
+    }
+}
+
+/**
+ * メール/パスワードでログイン
+ */
+async function signInWithEmail(email, password) {
+    try {
+        const result = await auth.signInWithEmailAndPassword(email, password);
+        currentUser = result.user;
+        console.log('メールログイン成功:', currentUser.email);
+        hideAuthError();
+        return currentUser;
+    } catch (error) {
+        console.error('ログインエラー:', error);
+        showAuthError(getAuthErrorMessage(error.code));
+        return null;
+    }
+}
+
+/**
+ * メール/パスワードで新規登録
+ */
+async function registerWithEmail(email, password) {
+    try {
+        const result = await auth.createUserWithEmailAndPassword(email, password);
+        currentUser = result.user;
+        console.log('新規登録成功:', currentUser.email);
+        hideAuthError();
+        return currentUser;
+    } catch (error) {
+        console.error('登録エラー:', error);
+        showAuthError(getAuthErrorMessage(error.code));
+        return null;
+    }
+}
+
+/**
+ * 認証エラーメッセージを取得
+ */
+function getAuthErrorMessage(errorCode) {
+    const messages = {
+        'auth/email-already-in-use': 'このメールアドレスは既に使用されています。',
+        'auth/invalid-email': 'メールアドレスの形式が正しくありません。',
+        'auth/user-not-found': 'このメールアドレスは登録されていません。',
+        'auth/wrong-password': 'パスワードが間違っています。',
+        'auth/weak-password': 'パスワードは6文字以上にしてください。',
+        'auth/too-many-requests': 'ログイン試行回数が多すぎます。しばらく待ってからお試しください。',
+        'auth/invalid-credential': 'メールアドレスまたはパスワードが間違っています。'
+    };
+    return messages[errorCode] || 'ログインに失敗しました。もう一度お試しください。';
+}
+
+/**
+ * 認証エラーを表示
+ */
+function showAuthError(message) {
+    const errorEl = document.getElementById('auth-error');
+    if (errorEl) {
+        errorEl.textContent = message;
+        errorEl.classList.remove('hidden');
+    }
+}
+
+/**
+ * 認証エラーを非表示
+ */
+function hideAuthError() {
+    const errorEl = document.getElementById('auth-error');
+    if (errorEl) {
+        errorEl.classList.add('hidden');
     }
 }
 
@@ -785,10 +834,35 @@ async function init() {
     // ローディング画面を表示
     document.getElementById('loading-screen').classList.remove('hidden');
 
-    // Googleログインボタン
-    document.getElementById('google-login-btn').addEventListener('click', async () => {
-        await signInWithGoogle();
-    });
+
+    // メール/パスワード認証フォーム
+    const emailForm = document.getElementById('email-auth-form');
+    const emailInput = document.getElementById('email-input');
+    const passwordInput = document.getElementById('password-input');
+    const registerBtn = document.getElementById('register-btn');
+
+    // ログインボタン（フォーム送信）
+    if (emailForm) {
+        emailForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            if (email && password) {
+                await signInWithEmail(email, password);
+            }
+        });
+    }
+
+    // 新規登録ボタン
+    if (registerBtn) {
+        registerBtn.addEventListener('click', async () => {
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            if (email && password) {
+                await registerWithEmail(email, password);
+            }
+        });
+    }
 
     // 匿名モードボタン（ログインせずに使う）
     document.getElementById('local-mode-btn').addEventListener('click', async () => {

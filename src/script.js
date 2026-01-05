@@ -845,8 +845,12 @@ function setupCalendarEventListeners() {
     document.getElementById('calendar-next-month').addEventListener('click', () => changeCalendarMonth(1));
 
     document.getElementById('calendar-today-btn').addEventListener('click', () => {
+        // 今日の日付を選択してカレンダーを閉じる
+        saveData();
+        selectedDate = new Date();
         calendarDisplayDate = new Date();
-        renderCalendar();
+        loadData(formatDate(selectedDate));
+        closeCalendarModal();
     });
 
     document.getElementById('calendar-close-btn').addEventListener('click', closeCalendarModal);

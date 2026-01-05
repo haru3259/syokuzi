@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>食事記録</title>
+  <meta name="description" content="毎日の食事を簡単に記録できるアプリ。朝・昼・夜の食事メニュー、メモ、写真を管理できます。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="src/style.css">
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+</head>
+
+<body>
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="loading-screen">
+    <div class="loader"></div>
+  </div>
+
+  <!-- Login Screen -->
+  <div id="login-screen" class="login-screen hidden">
+    <div class="login-container">
+      <div class="login-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+      </div>
+      <h1 class="login-title">食事記録</h1>
+      <p class="login-subtitle">毎日の食事を簡単に記録</p>
+
+      <!-- メール/パスワードフォーム -->
+      <form id="email-auth-form" class="email-auth-form">
+        <input type="email" id="email-input" class="auth-input" placeholder="メールアドレス" required>
+        <input type="password" id="password-input" class="auth-input" placeholder="パスワード（6文字以上）" required minlength="6">
+        <div class="auth-buttons">
+          <button type="submit" id="login-btn" class="auth-btn login-btn">ログイン</button>
+          <button type="button" id="register-btn" class="auth-btn register-btn">新規登録</button>
+        </div>
+        <p id="auth-error" class="auth-error hidden"></p>
+      </form>
+
+      <div class="login-divider">
+        <span>または</span>
+      </div>
+
+      <button id="local-mode-btn" class="local-mode-btn">
+        ログインせずに使う
+      </button>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <h1 class="header-title">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        食事記録
+      </h1>
+      <div class="auto-save-toggle">
+        <label class="toggle-switch">
+          <input type="checkbox" id="auto-save-checkbox" checked>
+          <span class="toggle-slider"></span>
+        </label>
+        <span class="toggle-label">自動保存</span>
+        <span id="save-indicator" class="save-indicator hidden">
+          <svg class="icon-sm spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+          </svg>
+        </span>
+        <span id="saved-indicator" class="saved-indicator hidden">
+          <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </span>
+        <div class="user-menu">
+          <img id="user-avatar" class="user-avatar" src="" alt="User">
+          <button id="logout-btn" class="logout-btn" title="ログアウト">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Date Navigator -->
+    <div class="date-navigator">
+      <div class="date-navigator-content">
+        <button id="today-btn" class="today-btn">今日</button>
+        <button id="prev-date" class="nav-btn" aria-label="前の日">
+          <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+
+        <div class="date-selector-wrapper">
+          <div class="date-display">
+            <span id="date-text" class="date-text"></span>
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          <div class="date-hint">タップして日付変更</div>
+          <input type="date" id="date-picker" class="date-picker-input">
+        </div>
+
+        <button id="next-date" class="nav-btn" aria-label="次の日">
+          <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Breakfast Section -->
+    <section class="meal-section" id="breakfast-section">
+      <div class="meal-header meal-header-breakfast">
+        <div class="meal-title-wrapper">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+            <line x1="6" y1="1" x2="6" y2="4"></line>
+            <line x1="10" y1="1" x2="10" y2="4"></line>
+            <line x1="14" y1="1" x2="14" y2="4"></line>
+          </svg>
+          <h2>朝ごはん</h2>
+        </div>
+      </div>
+
+      <div class="meal-body">
+        <div class="input-group">
+          <label class="input-label">メニュー</label>
+          <input type="text" id="breakfast-menu" class="text-input" placeholder="例: サンドイッチ">
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">メモ</label>
+          <textarea id="breakfast-memo" class="textarea-input" placeholder="感想やカロリーなど" rows="2"></textarea>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">写真</label>
+          <input type="file" id="breakfast-file" class="file-input" accept="image/*">
+          <div id="breakfast-upload" class="upload-area">
+            <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+            <span class="upload-text">写真を撮る / 選ぶ</span>
+          </div>
+          <div id="breakfast-preview" class="image-preview-container hidden">
+            <img id="breakfast-img" class="preview-image" alt="Meal">
+            <div class="image-actions">
+              <button class="action-btn action-zoom" data-action="zoom" aria-label="拡大">
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <polyline points="9 21 3 21 3 15"></polyline>
+                  <line x1="21" y1="3" x2="14" y2="10"></line>
+                  <line x1="3" y1="21" x2="10" y2="14"></line>
+                </svg>
+              </button>
+              <button class="action-btn action-change" data-action="change" aria-label="変更">
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+              </button>
+              <button class="action-btn action-delete" data-action="delete" aria-label="削除">
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+              </button>
+            </div>
+            <div class="mobile-actions">
+              <button class="mobile-action-btn" data-action="zoom" aria-label="拡大">
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <polyline points="9 21 3 21 3 15"></polyline>
+                  <line x1="21" y1="3" x2="14" y2="10"></line>
+                  <line x1="3" y1="21" x2="10" y2="14"></line>
+                </svg>
+              </button>
+              <button class="mobile-action-btn" data-action="delete" aria-label="削除">
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Lunch Section -->
+    <section class="meal-section" id="lunch-section">
+      <div class="meal-header meal-header-lunch">
+        <div class="meal-title-wrapper">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <h2>昼ごはん</h2>
+        </div>
+      </div>
+
+      <div class="meal-body">
+        <div class="input-group">
+          <label class="input-label">メニュー</label>
+          <input type="text" id="lunch-menu" class="text-input" placeholder="例: サンドイッチ">
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">メモ</label>
+          <textarea id="lunch-memo" class="textarea-input" placeholder="感想やカロリーなど" rows="2"></textarea>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">写真</label>
+          <input type="file" id="lunch-file" class="file-input" accept="image/*">
+          <div id="lunch-upload" class="upload-area">
+            <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+            <span class="upload-text">写真を撮る / 選ぶ</span>
+          </div>
+          <div id="lunch-preview" class="image-preview-container hidden">
+            <img id="lunch-img" class="preview-image" alt="Meal">
+            <div class="image-actions">
+              <button class="action-btn action-zoom" data-action="zoom" aria-label="拡大">
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <polyline points="9 21 3 21 3 15"></polyline>
+                  <line x1="21" y1="3" x2="14" y2="10"></line>
+                  <line x1="3" y1="21" x2="10" y2="14"></line>
+                </svg>
+              </button>
+              <button class="action-btn action-change" data-action="change" aria-label="変更">
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+              </button>
+              <button class="action-btn action-delete" data-action="delete" aria-label="削除">
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+              </button>
+            </div>
+            <div class="mobile-actions">
+              <button class="mobile-action-btn" data-action="zoom" aria-label="拡大">
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <polyline points="9 21 3 21 3 15"></polyline>
+                  <line x1="21" y1="3" x2="14" y2="10"></line>
+                  <line x1="3" y1="21" x2="10" y2="14"></line>
+                </svg>
+              </button>
+              <button class="mobile-action-btn" data-action="delete" aria-label="削除">
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dinner Section -->
+    <section class="meal-section" id="dinner-section">
+      <div class="meal-header meal-header-dinner">
+        <div class="meal-title-wrapper">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+          <h2>夜ごはん</h2>
+        </div>
+      </div>
+
+      <div class="meal-body">
+        <div class="input-group">
+          <label class="input-label">メニュー</label>
+          <input type="text" id="dinner-menu" class="text-input" placeholder="例: サンドイッチ">
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">メモ</label>
+          <textarea id="dinner-memo" class="textarea-input" placeholder="感想やカロリーなど" rows="2"></textarea>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">写真</label>
+          <input type="file" id="dinner-file" class="file-input" accept="image/*">
+          <div id="dinner-upload" class="upload-area">
+            <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+            <span class="upload-text">写真を撮る / 選ぶ</span>
+          </div>
+          <div id="dinner-preview" class="image-preview-container hidden">
+            <img id="dinner-img" class="preview-image" alt="Meal">
+            <div class="image-actions">
+              <button class="action-btn action-zoom" data-action="zoom" aria-label="拡大">
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <polyline points="9 21 3 21 3 15"></polyline>
+                  <line x1="21" y1="3" x2="14" y2="10"></line>
+                  <line x1="3" y1="21" x2="10" y2="14"></line>
+                </svg>
+              </button>
+              <button class="action-btn action-change" data-action="change" aria-label="変更">
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+              </button>
+              <button class="action-btn action-delete" data-action="delete" aria-label="削除">
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+              </button>
+            </div>
+            <div class="mobile-actions">
+              <button class="mobile-action-btn" data-action="zoom" aria-label="拡大">
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <polyline points="9 21 3 21 3 15"></polyline>
+                  <line x1="21" y1="3" x2="14" y2="10"></line>
+                  <line x1="3" y1="21" x2="10" y2="14"></line>
+                </svg>
+              </button>
+              <button class="mobile-action-btn" data-action="delete" aria-label="削除">
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Floating Save Button -->
+  <div class="floating-save">
+    <button id="save-btn" class="save-btn">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+        <polyline points="7 3 7 8 15 8"></polyline>
+      </svg>
+      <span id="save-text">記録する</span>
+    </button>
+  </div>
+
+  <!-- Fullscreen Image Modal -->
+  <div id="image-modal" class="modal hidden">
+    <div class="modal-content">
+      <img id="modal-img" class="modal-image" alt="Full size">
+      <button id="modal-close" class="modal-close" aria-label="閉じる">
+        <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Calendar Modal -->
+  <div id="calendar-modal" class="calendar-modal hidden">
+    <div class="calendar-container">
+      <div class="calendar-header">
+        <button id="calendar-prev-month" class="calendar-nav-btn" aria-label="前月">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <span id="calendar-month-year" class="calendar-month-year"></span>
+        <button id="calendar-next-month" class="calendar-nav-btn" aria-label="次月">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+      <div class="calendar-weekdays">
+        <span class="weekday sunday">日</span>
+        <span class="weekday">月</span>
+        <span class="weekday">火</span>
+        <span class="weekday">水</span>
+        <span class="weekday">木</span>
+        <span class="weekday">金</span>
+        <span class="weekday saturday">土</span>
+      </div>
+      <div id="calendar-days" class="calendar-days"></div>
+      <div class="calendar-footer">
+        <button id="calendar-today-btn" class="calendar-today-btn">今日へ戻る</button>
+        <button id="calendar-close-btn" class="calendar-close-btn">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="src/script.js"></script>
+</body>
+
+</html>

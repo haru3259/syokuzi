@@ -38,7 +38,7 @@ let meals = {
 // 自動保存関連
 let autoSaveEnabled = true;
 let autoSaveTimeout = null;
-const AUTO_SAVE_DELAY = 1500; // 1.5秒後に自動保存
+const AUTO_SAVE_DELAY = 3000; // 3秒後に自動保存（データ使用量を抑える）
 
 // カレンダー関連
 let calendarDisplayDate = new Date();
@@ -46,6 +46,9 @@ let calendarDisplayDate = new Date();
 // 保存中フラグ
 let isSaving = false;
 let isLoading = false;
+
+// 前回の保存内容（変更検知用）
+let lastSavedData = null;
 
 // ===================================
 // Utility Functions
@@ -244,6 +247,9 @@ async function loadData(dateStr) {
             resetMeals();
         }
 
+        // 読み込んだデータを変更検知の基準として保存
+        lastSavedData = JSON.stringify(meals);
+
         updateUI();
     } catch (error) {
         console.error('データの読み込みに失敗:', error);
@@ -280,11 +286,18 @@ function loadFromLocalStorage(dateStr) {
 async function saveData(showIndicator = false) {
     if (isSaving || !currentUser) return false;
 
-    isSaving = true;
-    const dateStr = formatDate(selectedDate);
-
     // 入力値を収集
     collectInputValues();
+
+    // 変更がない場合は保存をスキップ（データ使用量を抑える）
+    const currentDataStr = JSON.stringify(meals);
+    if (lastSavedData === currentDataStr) {
+        if (showIndicator) showSavedIndicator();
+        return true;
+    }
+
+    isSaving = true;
+    const dateStr = formatDate(selectedDate);
 
     try {
         const docPath = getDocPath(dateStr);
@@ -300,6 +313,9 @@ async function saveData(showIndicator = false) {
         // ローカルストレージにもバックアップ
         localStorage.setItem(`meal_record_${dateStr}`, JSON.stringify(meals));
 
+        // 保存成功時に前回の保存内容を更新
+        lastSavedData = currentDataStr;
+
         if (showIndicator) {
             showSavedIndicator();
         }
@@ -309,6 +325,7 @@ async function saveData(showIndicator = false) {
         console.error('データの保存に失敗:', error);
         // オフラインの場合はローカルストレージに保存
         localStorage.setItem(`meal_record_${dateStr}`, JSON.stringify(meals));
+        lastSavedData = currentDataStr;
         if (showIndicator) {
             showSavedIndicator();
         }
@@ -482,6 +499,21 @@ function handleDateSelect(event) {
 async function handleImageUpload(event, mealType) {
     const file = event.target.files[0];
     if (!file || !currentUser) return;
+
+    // 画像ファイルかどうかをチェック
+    if (!file.type.startsWith('image/')) {
+        alert('画像ファイルのみアップロードできます。');
+        event.target.value = '';
+        return;
+    }
+
+    // ファイルサイズチェック（10MB以下）
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+        alert('ファイルサイズは10MB以下にしてください。');
+        event.target.value = '';
+        return;
+    }
 
     const uploadArea = document.getElementById(`${mealType}-upload`);
     uploadArea.classList.add('uploading');

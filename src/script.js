@@ -338,23 +338,46 @@ async function saveData(showIndicator = false) {
 /**
  * 画像をFirebase Storageにアップロード
  */
-async function uploadImageToStorage(file, mealType) {
-    if (!currentUser) return null;
+/**
+ * 画像をFirebase Storageにアップロード
+ */
+function uploadImageToStorage(file, mealType, onProgress) {
+    return new Promise((resolve, reject) => {
+        if (!currentUser) {
+            reject(new Error('User not logged in'));
+            return;
+        }
 
-    const dateStr = formatDate(selectedDate);
-    const timestamp = Date.now();
-    const extension = file.name.split('.').pop();
-    const storagePath = `users/${currentUser.uid}/images/${dateStr}_${mealType}_${timestamp}.${extension}`;
+        const dateStr = formatDate(selectedDate);
+        const timestamp = Date.now();
+        const extension = file.name.split('.').pop();
+        const storagePath = `users/${currentUser.uid}/images/${dateStr}_${mealType}_${timestamp}.${extension}`;
 
-    try {
         const storageRef = storage.ref(storagePath);
-        const snapshot = await storageRef.put(file);
-        const downloadURL = await snapshot.ref.getDownloadURL();
-        return downloadURL;
-    } catch (error) {
-        console.error('画像アップロードエラー:', error);
-        throw error;
-    }
+        const uploadTask = storageRef.put(file);
+
+        uploadTask.on('state_changed',
+            (snapshot) => {
+                // 進捗状況
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                if (onProgress) onProgress(progress);
+            },
+            (error) => {
+                // エラー
+                console.error('画像アップロードエラー:', error);
+                reject(error);
+            },
+            async () => {
+                // 完了
+                try {
+                    const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+                    resolve(downloadURL);
+                } catch (error) {
+                    reject(error);
+                }
+            }
+        );
+    });
 }
 
 /**
@@ -507,20 +530,31 @@ async function handleImageUpload(event, mealType) {
         return;
     }
 
-    // ファイルサイズチェック（10MB以下）
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    // ファイルサイズチェック（5MB以下）
+    const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
-        alert('ファイルサイズは10MB以下にしてください。');
+        alert('ファイルサイズは5MB以下にしてください。');
         event.target.value = '';
         return;
     }
 
     const uploadArea = document.getElementById(`${mealType}-upload`);
-    uploadArea.classList.add('uploading');
+    const progressContainer = document.getElementById(`${mealType}-progress`);
+    const progressFill = progressContainer.querySelector('.progress-fill');
+    const progressText = progressContainer.querySelector('.progress-text');
+
+    uploadArea.classList.add('hidden');
+    progressContainer.classList.remove('hidden');
+    progressFill.style.width = '0%';
+    progressText.textContent = '0%';
 
     try {
         // Firebase Storageにアップロード
-        const downloadURL = await uploadImageToStorage(file, mealType);
+        const downloadURL = await uploadImageToStorage(file, mealType, (progress) => {
+            const percent = Math.round(progress);
+            progressFill.style.width = `${percent}%`;
+            progressText.textContent = `${percent}%`;
+        });
         meals[mealType].imageUrl = downloadURL;
         updateImagePreviews();
         triggerAutoSave();
@@ -536,6 +570,7 @@ async function handleImageUpload(event, mealType) {
         reader.readAsDataURL(file);
     } finally {
         uploadArea.classList.remove('uploading');
+        progressContainer.classList.add('hidden');
     }
 }
 

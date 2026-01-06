@@ -337,7 +337,16 @@ body {
 }
 
 @media (max-width: 640px) {
+
+    /* モバイル表示でもメールアドレスを表示 */
     .user-email {
+        display: block;
+        font-size: 10px;
+        max-width: 90px;
+    }
+
+    /* モバイルでは自動保存のテキストを非表示にしてスペース確保 */
+    .toggle-label {
         display: none;
     }
 }

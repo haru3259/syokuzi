@@ -51,6 +51,48 @@ let isLoading = false;
 let lastSavedData = null;
 
 // ===================================
+// UI Helpers
+// ===================================
+
+/**
+ * トースト通知を表示
+ * @param {string} message - 表示するメッセージ
+ * @param {string} type - 'success', 'error', 'info'
+ */
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+
+    // アイコンのSVGパス定義
+    const icons = {
+        success: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>',
+        error: '<circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line>',
+        info: '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>'
+    };
+
+    toast.innerHTML = `
+        <svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            ${icons[type] || icons.info}
+        </svg>
+        <div class="toast-message">${message}</div>
+    `;
+
+    container.appendChild(toast);
+
+    // 3秒後に削除
+    setTimeout(() => {
+        toast.classList.add('removing');
+        toast.addEventListener('animationend', () => {
+            toast.remove();
+        });
+    }, 3000);
+}
+
+
+// ===================================
 // Utility Functions
 // ===================================
 
@@ -97,7 +139,7 @@ async function signInAnonymously() {
         return currentUser;
     } catch (error) {
         console.error('匿名ログインエラー:', error);
-        alert('ログインに失敗しました。ページをリロードしてください。');
+        showToast('ログインに失敗しました。ページをリロードしてください。', 'error');
         return null;
     }
 }
@@ -525,7 +567,7 @@ async function handleImageUpload(event, mealType) {
 
     // 画像ファイルかどうかをチェック
     if (!file.type.startsWith('image/')) {
-        alert('画像ファイルのみアップロードできます。');
+        showToast('画像ファイルのみアップロードできます。', 'error');
         event.target.value = '';
         return;
     }
@@ -533,7 +575,7 @@ async function handleImageUpload(event, mealType) {
     // ファイルサイズチェック（5MB以下）
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
-        alert('ファイルサイズは5MB以下にしてください。');
+        showToast('ファイルサイズは5MB以下にしてください。', 'error');
         event.target.value = '';
         return;
     }

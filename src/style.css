@@ -1526,6 +1526,58 @@ body {
     line-height: 1.5;
 }
 
+.settings-input-group {
+    margin-bottom: var(--spacing-3);
+}
+
+.settings-input-group label {
+    display: block;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-slate-600);
+    margin-bottom: var(--spacing-1);
+}
+
+.settings-input {
+    width: 100%;
+    padding: var(--spacing-2) var(--spacing-3);
+    background-color: var(--color-slate-50);
+    border: 1px solid var(--color-slate-200);
+    border-radius: var(--radius-lg);
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    color: var(--color-slate-800);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    outline: none;
+}
+
+.settings-input:focus {
+    border-color: var(--color-orange-300);
+    box-shadow: 0 0 0 3px rgba(253, 186, 116, 0.4);
+}
+
+.save-username-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-3);
+    background-color: var(--color-orange-500);
+    color: var(--color-white);
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-family: var(--font-family);
+}
+
+.save-username-btn:hover {
+    background-color: var(--color-orange-600);
+}
+
 .delete-account-btn {
     width: 100%;
     display: flex;
@@ -1546,6 +1598,139 @@ body {
 
 .delete-account-btn:hover {
     background-color: #b91c1c;
+}
+
+/* Profile Avatar Settings */
+.profile-avatar-setting {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-4);
+    padding: var(--spacing-4);
+    background-color: var(--color-slate-50);
+    border-radius: var(--radius-lg);
+}
+
+.avatar-preview-wrapper {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+}
+
+.avatar-preview {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--color-orange-400);
+}
+
+.avatar-preview[src=""],
+.avatar-preview:not([src]) {
+    display: none;
+}
+
+.avatar-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-slate-200);
+    border-radius: 50%;
+    color: var(--color-slate-400);
+    border: 3px solid var(--color-slate-300);
+}
+
+.avatar-placeholder.hidden {
+    display: none;
+}
+
+.avatar-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+}
+
+.change-avatar-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-3);
+    background-color: var(--color-orange-500);
+    color: var(--color-white);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-family: var(--font-family);
+}
+
+.change-avatar-btn:hover {
+    background-color: var(--color-orange-600);
+}
+
+.remove-avatar-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-3);
+    background-color: var(--color-slate-100);
+    color: var(--color-slate-600);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-family: var(--font-family);
+}
+
+.remove-avatar-btn:hover {
+    background-color: var(--color-slate-200);
+    color: var(--color-red-600);
+}
+
+/* Header User Avatar */
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--color-orange-400);
+    background-color: var(--color-slate-200);
+}
+
+.user-avatar[src=""],
+.user-avatar:not([src]) {
+    display: none;
+}
+
+/* Header Avatar Wrapper */
+.header-avatar-wrapper {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+}
+
+.header-avatar-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-slate-200);
+    border-radius: 50%;
+    color: var(--color-slate-500);
+    border: 2px solid var(--color-slate-300);
+}
+
+.header-avatar-placeholder.hidden {
+    display: none;
 }
 
 /* Utility Classes */
@@ -1584,4 +1769,103 @@ html {
 :focus-visible {
     outline: 2px solid var(--color-orange-500);
     outline-offset: 2px;
+}
+
+/* Stylish Loading Screen */
+.loading-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background-color: var(--color-slate-50);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+}
+
+.loading-screen.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-6);
+    animation: fadeIn 0.5s ease-out;
+}
+
+.loading-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.loading-icon {
+    width: 64px;
+    height: 64px;
+    color: var(--color-orange-500);
+    animation: pulse 2s infinite ease-in-out;
+}
+
+.loading-text {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--color-slate-700);
+    letter-spacing: 0.05em;
+    font-family: var(--font-family-mono);
+}
+
+.loading-bar-container {
+    width: 240px;
+    height: 4px;
+    background-color: var(--color-slate-200);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+}
+
+.loading-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background-color: var(--color-orange-500);
+    border-radius: 2px;
+    animation: loadingProgress 2s ease-in-out infinite;
+    background: linear-gradient(90deg, var(--color-orange-400), var(--color-orange-600));
+}
+
+@keyframes loadingProgress {
+    0% {
+        width: 0%;
+        opacity: 1;
+    }
+
+    80% {
+        width: 100%;
+        opacity: 1;
+    }
+
+    100% {
+        width: 100%;
+        opacity: 0;
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
 }

@@ -158,12 +158,24 @@
             </div>
           </div>
           <span id="user-email" class="user-email"></span>
+          <span id="verified-badge" class="verified-badge hidden" title="認証済みアカウント">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z" />
+            </svg>
+          </span>
+          <span id="admin-badge" class="admin-badge hidden">管理者</span>
           <button id="settings-btn" class="settings-btn" title="設定">
             <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="3"></circle>
               <path
                 d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
               </path>
+            </svg>
+          </button>
+          <button id="admin-btn" class="admin-btn hidden" title="管理画面">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="var(--color-white)" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
             </svg>
           </button>
           <button id="logout-btn" class="logout-btn" title="ログアウト">
@@ -675,6 +687,69 @@
       <div class="crop-actions">
         <button id="crop-cancel-btn" class="crop-btn crop-btn-secondary">キャンセル</button>
         <button id="crop-confirm-btn" class="crop-btn crop-btn-primary">確定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Screen Modal -->
+  <div id="admin-modal" class="admin-modal hidden">
+    <div class="admin-container">
+      <div class="admin-header">
+        <h2>管理者画面</h2>
+        <button id="admin-close-btn" class="admin-close-btn" aria-label="閉じる">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="admin-body">
+        <div class="admin-stats">
+          <div class="admin-stat-card">
+            <span class="stat-value" id="total-users-count">0</span>
+            <span class="stat-label">ユーザー数</span>
+          </div>
+        </div>
+        <div class="admin-section">
+          <h3>ユーザー一覧</h3>
+          <div class="admin-user-list" id="admin-user-list">
+            <div class="admin-loading">読み込み中...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Data Modal -->
+  <div id="user-data-modal" class="user-data-modal hidden">
+    <div class="user-data-container">
+      <div class="user-data-header">
+        <h3 id="user-data-title">ユーザーデータ</h3>
+        <button id="user-data-close-btn" class="admin-close-btn" aria-label="閉じる">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="user-data-body" id="user-data-body">
+        <div class="admin-loading">読み込み中...</div>
+      </div>
+      <div class="user-data-actions">
+        <button id="toggle-verify-btn" class="toggle-verify-btn">
+          <svg class="icon-sm" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z" />
+          </svg>
+          <span id="toggle-verify-text">認証を付与</span>
+        </button>
+        <button id="delete-user-btn" class="delete-user-btn">
+          <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          このユーザーを削除
+        </button>
       </div>
     </div>
   </div>

@@ -54,8 +54,9 @@
 
       <!-- メール/パスワードフォーム -->
       <form id="email-auth-form" class="email-auth-form">
-        <input type="email" id="email-input" class="auth-input" placeholder="メールアドレス" required>
-        <input type="password" id="password-input" class="auth-input" placeholder="パスワード（6文字以上）" required minlength="6">
+        <input type="email" id="email-input" class="auth-input" placeholder="メールアドレス" required autocomplete="email">
+        <input type="password" id="password-input" class="auth-input" placeholder="パスワード（6文字以上）" required minlength="6"
+          autocomplete="current-password">
         <div class="auth-buttons">
           <button type="submit" id="login-btn" class="auth-btn login-btn">ログイン</button>
           <button type="button" id="register-btn" class="auth-btn register-btn">新規登録</button>
@@ -70,6 +71,50 @@
       <button id="local-mode-btn" class="local-mode-btn">
         ログインせずに使う
       </button>
+    </div>
+  </div>
+
+  <!-- Onboarding Screen -->
+  <div id="onboarding-screen" class="onboarding-screen hidden">
+    <div class="onboarding-container">
+      <div class="onboarding-header">
+        <h2>プロフィールを設定</h2>
+        <p>あなたの情報を入力してください（後からでも変更できます）</p>
+      </div>
+
+      <div class="onboarding-body">
+        <!-- プロフィール画像 -->
+        <div class="onboarding-avatar-section">
+          <div class="onboarding-avatar-wrapper">
+            <img id="onboarding-avatar-preview" class="onboarding-avatar-preview" src="" alt="プロフィール画像">
+            <div class="onboarding-avatar-placeholder" id="onboarding-avatar-placeholder">
+              <svg class="icon-xl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+          </div>
+          <input type="file" id="onboarding-avatar-input" class="file-input" accept="image/*">
+          <button id="onboarding-avatar-btn" class="onboarding-avatar-btn">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+            写真を選択
+          </button>
+        </div>
+
+        <!-- ユーザー名 -->
+        <div class="onboarding-input-group">
+          <label for="onboarding-username">ユーザー名</label>
+          <input type="text" id="onboarding-username" class="onboarding-input" placeholder="表示名を入力">
+        </div>
+      </div>
+
+      <div class="onboarding-actions">
+        <button id="onboarding-skip-btn" class="onboarding-btn onboarding-btn-secondary">スキップ</button>
+        <button id="onboarding-save-btn" class="onboarding-btn onboarding-btn-primary">保存して始める</button>
+      </div>
     </div>
   </div>
 
@@ -611,6 +656,25 @@
             アカウントを削除
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Crop Modal -->
+  <div id="crop-modal" class="crop-modal hidden">
+    <div class="crop-container">
+      <div class="crop-header">
+        <h3>画像の位置を調整</h3>
+        <p>ドラッグして表示位置を調整してください</p>
+      </div>
+      <div class="crop-area">
+        <div class="crop-mask">
+          <img id="crop-image" class="crop-image" src="" alt="Crop preview" draggable="false">
+        </div>
+      </div>
+      <div class="crop-actions">
+        <button id="crop-cancel-btn" class="crop-btn crop-btn-secondary">キャンセル</button>
+        <button id="crop-confirm-btn" class="crop-btn crop-btn-primary">確定</button>
       </div>
     </div>
   </div>
